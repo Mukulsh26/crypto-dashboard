@@ -1,22 +1,23 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom"; 
-import Chart from "../components/Chart"; 
+import { useParams } from "react-router-dom";
+import Chart from "../components/Chart";
+import { fetchCoinDetails, fetchCoinPriceHistory } from "../utils/api"; // Import the API functions
 
 const CoinDetail = () => {
-  const { id } = useParams(); 
+  const { id } = useParams();
   const [coinDetail, setCoinDetail] = useState(null);
   const [priceHistory, setPriceHistory] = useState({ prices: [], labels: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedTimeframe, setSelectedTimeframe] = useState("1d"); 
+  const [selectedTimeframe, setSelectedTimeframe] = useState("1d");
 
+  // Fetch coin details only once when the id changes
   useEffect(() => {
     const fetchCoinDetail = async () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch(`https://api.coingecko.com/api/v3/coins/${id}`);
-        const data = await response.json();
+        const data = await fetchCoinDetails(id);
         setCoinDetail(data);
       } catch (err) {
         setError("Failed to fetch coin details.");
@@ -24,31 +25,31 @@ const CoinDetail = () => {
         setLoading(false);
       }
     };
-  
+
     if (id) {
       fetchCoinDetail();
-      fetchPriceHistory(id, selectedTimeframe); 
     }
-  }, [id, selectedTimeframe]); 
+  }, [id]);
 
-  
-  const fetchPriceHistory = async (coinId, timeframe) => {
-    setLoading(true);
-    try {
-      const response = await fetch(
-        `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${timeframe}`
-      );
-      const data = await response.json();
-      const prices = data.prices.map((price) => price[1]);
-      const labels = data.prices.map((price) => new Date(price[0]).toLocaleDateString());
-      setPriceHistory({ prices, labels });
-    } catch (err) {
-      setError("Failed to fetch price history.");
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    const fetchPriceHistory = async (coinId, timeframe) => {
+      setLoading(true);
+      try {
+        const data = await fetchCoinPriceHistory(coinId, timeframe);
+        setPriceHistory(data);
+      } catch (err) {
+        setError("Failed to fetch price history.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (coinDetail) {
+      fetchPriceHistory(id, selectedTimeframe); // Only fetch price history if coin details are available
     }
-  };
+  }, [id, selectedTimeframe, coinDetail]); // Re-fetch price history only when `id` or `selectedTimeframe` changes
 
+  // Handle timeframe change for price history
   const handleTimeframeChange = (timeframe) => {
     setSelectedTimeframe(timeframe);
   };
@@ -63,6 +64,7 @@ const CoinDetail = () => {
           <h2 className="text-3xl font-bold mb-4 text-gray-900 dark:text-white">
             {coinDetail.name}
           </h2>
+          <img src={coinDetail.image.large} alt={coinDetail.name} className="w-20 h-20 mr-2" />
           <div className="text-lg mb-4 text-gray-700 dark:text-gray-300">
             <p><strong>Symbol:</strong> {coinDetail.symbol}</p>
             <p><strong>Market Cap:</strong> ${coinDetail.market_data.market_cap.usd}</p>
@@ -71,7 +73,6 @@ const CoinDetail = () => {
             <p><strong>Description:</strong> {coinDetail.description.en}</p>
           </div>
 
-          
           <div className="flex justify-center mb-6">
             {["1d", "7d", "1m", "3m", "1y"].map((timeframe) => (
               <button
@@ -90,7 +91,6 @@ const CoinDetail = () => {
             ))}
           </div>
 
-          
           <div className="text-center">
             <Chart data={priceHistory.prices} labels={priceHistory.labels} />
           </div>

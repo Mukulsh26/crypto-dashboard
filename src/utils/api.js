@@ -3,21 +3,20 @@ import axios from "axios";
 const BASE_URL = "https://api.coingecko.com/api/v3";
 
 
-export const fetchCryptoList = async (page = 1, limit = 10) => {
+export const fetchCryptoList = async () => {
   try {
     const response = await axios.get(`${BASE_URL}/coins/markets`, {
       params: {
-        vs_currency: "usd",
+        vs_currency: "usd", 
         order: "market_cap_desc",
-        per_page: limit,
-        page,
       },
     });
-    return response.data;
+    return response.data; 
   } catch (error) {
     throw new Error("Failed to fetch cryptocurrencies.");
   }
 };
+
 
 
 export const fetchCoinDetails = async (id) => {

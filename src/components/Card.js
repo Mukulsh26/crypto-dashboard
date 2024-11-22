@@ -17,12 +17,16 @@ const Card = ({ coin }) => {
         <h3 className="text-xl font-semibold">{coin.name}</h3>
         <span className="text-gray-500">{coin.symbol.toUpperCase()}</span>
       </div>
-      <div className="mt-4">
-        <p className="text-gray-700">Price: ${coin.current_price}</p>
-        <p className="text-green-500">
-          24h Change: {coin.price_change_percentage_24h.toFixed(2)}%
-        </p>
-        <p className="text-gray-500">Market Cap: ${coin.market_cap}</p>
+      <div className="mt-4 flex items-center">
+        {/* Display the coin image */}
+        <img src={coin.image} alt={coin.name} className="w-10 h-10 mr-2" />
+        <div>
+          <p className="text-gray-700">Price: ${coin.current_price}</p>
+          <p className="text-green-500">
+            24h Change: {coin.price_change_percentage_24h.toFixed(2)}%
+          </p>
+          <p className="text-gray-500">Market Cap: ${coin.market_cap}</p>
+        </div>
       </div>
     </div>
   );
